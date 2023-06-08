@@ -5,7 +5,7 @@ import re
 class Conectar_BD:
     @staticmethod
     def conectar():
-        conexao = sqlite3.connect("D:/UFPB/BD/BD_2/Materiais_de_Construcao.db")
+        conexao = sqlite3.connect("D:\GITHUB\BANCO-DE-DADOS-UFPB---PROJETO\Materiais_de_Construcao.db")
         return conexao
 
 

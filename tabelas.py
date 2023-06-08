@@ -1,5 +1,5 @@
 import sqlite3
-conn = sqlite3.connect('D:/UFPB/BD/BD_2/Materiais_de_Construcao.db')
+conn = sqlite3.connect('D:\GITHUB\BANCO-DE-DADOS-UFPB---PROJETO\Materiais_de_Construcao.db')
 cursor = conn.cursor()
 # Criar tabela Materiais
 cursor.execute('''
