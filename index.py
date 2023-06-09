@@ -80,6 +80,12 @@ class Application():
     ButtonAdmin = ttk.Button(self.RightFrame, text="Administrador", width=35, command=self.admin)
     ButtonAdmin.place(x=150, y=230)
 
+    ButtonManager = ttk.Button(self.RightFrame, text="Gerente", width=35, command = self.manager)
+    ButtonManager.place(x=150, y=290)
+
+    ButtonSeller = ttk.Button(self.RightFrame, text="Vendedor", width=35, command = self.seller)
+    ButtonSeller.place(x=150, y=290)
+
   # Início do loop do cliente
   def client(self):
     Application.limpar(self)
@@ -107,8 +113,8 @@ class Application():
     RegisterButton = ttk.Button(self.RightFrame, text="Registrar", width=30, command=self.register_client)
     RegisterButton.place(x=160, y=250)
 
-    # VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.inicio)
-    # VoltarButton.place(x=220, y=400)
+    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.inicio)
+    VoltarButton.place(x=220, y=400)
 
   # Tentativa do login do cliente
   def action_login_client(self):
@@ -158,7 +164,7 @@ class Application():
     self.create_widgtes()
     self.create_logo_user()
 
-    UpdateUserLabel = tk.Label(self.RightFrame, text="Usuário:", bg="#f5f5f5")
+    UpdateUserLabel = tk.Label(self.RightFrame, text="Nome Completo:", bg="#f5f5f5")
     UpdateUserLabel.place(x=70, y=50)
     UpdateUserEntry = ttk.Entry(self.RightFrame, width=20)
     UpdateUserEntry.place(x=180, y=50)
@@ -225,7 +231,7 @@ class Application():
     self.create_widgtes()
     self.create_logo_user()
 
-    SaveUserLabel = tk.Label(self.RightFrame, text="Usuário:", bg="#f5f5f5")
+    SaveUserLabel = tk.Label(self.RightFrame, text="Nome completo:", bg="#f5f5f5")
     SaveUserLabel.place(x=70, y=50)
     SaveUserEntry = ttk.Entry(self.RightFrame, width=20)
     SaveUserEntry.place(x=180, y=50)
@@ -312,18 +318,243 @@ class Application():
     LoginButton = ttk.Button(self.RightFrame, text="Login", width=20, command = self.action_login_adm)
     LoginButton.place(x=180, y=140)
 
-    AdviceLabel = tk.Label(self.RightFrame, text="Clique abaixo para registrar-se!", bg="#F5F5F5")
-    AdviceLabel.place(x=130, y=200)
-
-    RegisterButton = ttk.Button(self.RightFrame, text="Registrar", width=30, command=self.register_adm)
-    RegisterButton.place(x=160, y=250)
-
     VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.inicio)
     VoltarButton.place(x=220, y=400)
+  
+  def action_login_adm(self):
+    try:
+      # Código de validação de login no BD
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_adm()     
+
+      ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
+      ContinueLabel.place(x=120, y=100)
+
+      ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_adm)
+      ContinueButton.place(x=165, y=170)
     
-  def register_adm(self):
-    ...
+    except:
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_adm()
+
+      ErrorLabel = tk.Label(self.RightFrame, text="Erro ao fazer login, tente novamente!", bg="#F5F5F5")
+      ErrorLabel.place(x=120, y=100)
+      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.admin)
+      AgainButton.place(x=120, y=150)
+
+  def options_adm(self):
+    Application.limpar(self)
+    self.create_widgtes()
+    self.create_logo_adm()
+
+    TextLabel = tk.Label(self.RightFrame, text="Selecione a opção desejada", bg="#F5F5F5")
+    TextLabel.place(x=120, y=100)
+
+    BuyButton = ttk.Button(self.RightFrame, text="Cadastrar novo gerente", command=self.register_manager)
+    BuyButton.place(x=120, y=150)
+
+    UpdateButton = ttk.Button(self.RightFrame, text="Gerenciar gerentes", command=self.list_manager)
+    UpdateButton.place(x=120, y=200)
+
+    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.admin)
+    VoltarButton.place(x=120, y=400)
+
+  def register_manager(self):
+    Application.limpar(self)
+    self.create_widgtes()
+    self.create_logo_adm()
+
+    SaveAdmLabel = tk.Label(self.RightFrame, text="Nome completo:", bg="#f5f5f5")
+    SaveAdmLabel.place(x=70, y=50)
+    SaveAdmEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveAdmEntry.place(x=180, y=50)
+
+    SaveContactLabel = tk.Label(self.RightFrame, text="Contato:", bg="#f5f5f5")
+    SaveContactLabel.place(x=70, y=90)
+    SaveContactEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveContactEntry.place(x=180, y=90)
+
+    SaveUserIdLabel = tk.Label(self.RightFrame, text="ID:", bg="#f5f5f5")
+    SaveUserIdLabel.place(x=70, y = 130)
+    SaveUserIdEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveUserIdEntry.place(x=180, y=130)
+
+    SaveStockLabel = tk.Label(self.RightFrame, text="Estoque responsável:", bg="#f5f5f5")
+    SaveStockLabel.place(x=70, y=170)
+    SaveStockEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveStockEntry.place(x=180, y= 170)
+
+    SavePassLabel = tk.Label(self.RightFrame, text="Senha:", bg="#f5f5f5")
+    SavePassLabel.place(x=70, y=210)
+    SavePassEntry = ttk.Entry(self.RightFrame, width=20)
+    SavePassEntry.place(x=180, y= 210)   
+
+    SavetButton = ttk.Button(self.RightFrame, text="Salvar dados", command=self.action_register_manager)
+    SavetButton.place(x=220, y=350)
+
+    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.admin)
+    VoltarButton.place(x=220, y=400)
+
+  def action_register_manager(self):
+    try:
+      # Código de validação de login no BD
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_adm()     
+
+      ContinueLabel = tk.Label(self.RightFrame, text="Gerente salvo com sucesso!\nClique para continuar", bg="#F5F5F5")
+      ContinueLabel.place(x=120, y=100)
+
+      ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_adm)
+      ContinueButton.place(x=165, y=170)
+    
+    except:
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_adm()
+
+      ErrorLabel = tk.Label(self.RightFrame, text="Erro ao salvar dados, tente novamente!", bg="#F5F5F5")
+      ErrorLabel.place(x=120, y=100)
+      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.register_manager)
+      AgainButton.place(x=120, y=150)
+
+  def update_manager(self):
+    Application.limpar(self)
+    self.create_widgtes()
+    self.create_logo_adm()
+
+    UpdateAdmLabel = tk.Label(self.RightFrame, text="Nome completo:", bg="#f5f5f5")
+    UpdateAdmLabel.place(x=70, y=50)
+    UpdateAdmEntry = ttk.Entry(self.RightFrame, width=20)
+    UpdateAdmEntry.place(x=180, y=50)
+
+    UpdateContactLabel = tk.Label(self.RightFrame, text="Contato:", bg="#f5f5f5")
+    UpdateContactLabel.place(x=70, y=90)
+    UpdateContactEntry = ttk.Entry(self.RightFrame, width=20)
+    UpdateContactEntry.place(x=180, y=90)
+
+    UpdateUserIdLabel = tk.Label(self.RightFrame, text="ID:", bg="#f5f5f5")
+    UpdateUserIdLabel.place(x=70, y = 130)
+    UpdateUserIdEntry = ttk.Entry(self.RightFrame, width=20)
+    UpdateUserIdEntry.place(x=180, y=130)
+
+    UpdateStockLabel = tk.Label(self.RightFrame, text="Estoque responsável:", bg="#f5f5f5")
+    UpdateStockLabel.place(x=70, y=170)
+    UpdateStockEntry = ttk.Entry(self.RightFrame, width=20)
+    UpdateStockEntry.place(x=180, y= 170)
+
+    UpdatePassLabel = tk.Label(self.RightFrame, text="Senha:", bg="#f5f5f5")
+    UpdatePassLabel.place(x=70, y=210)
+    UpdatePassEntry = ttk.Entry(self.RightFrame, width=20)
+    UpdatePassEntry.place(x=180, y= 210)   
+
+    UpdateButton = ttk.Button(self.RightFrame, text="Atualizar dados", command=self.action_update_manager)
+    UpdateButton.place(x=220, y=350)
+
+    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.client)
+    VoltarButton.place(x=220, y=400)
+    
+  def action_update_manager(self):
+    try:
+      # Código de validação de login no BD
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_adm()     
+
+      ContinueLabel = tk.Label(self.RightFrame, text="Gerente atualizado com sucesso!\nClique para continuar", bg="#F5F5F5")
+      ContinueLabel.place(x=120, y=100)
+
+      ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_adm)
+      ContinueButton.place(x=165, y=170)
+    
+    except:
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_adm()
+
+      ErrorLabel = tk.Label(self.RightFrame, text="Erro ao atualizar dados, tente novamente!", bg="#F5F5F5")
+      ErrorLabel.place(x=120, y=100)
+      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.update_manager)
+      AgainButton.place(x=120, y=150)
+
+  def action_remove_manager(self):
+    try:
+      # Código de validação de login no BD
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_adm()     
+
+      ContinueLabel = tk.Label(self.RightFrame, text="Gerente removido com sucesso!\nClique para continuar", bg="#F5F5F5")
+      ContinueLabel.place(x=120, y=100)
+
+      ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_adm)
+      ContinueButton.place(x=165, y=170)
+    
+    except:
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_adm()
+
+      ErrorLabel = tk.Label(self.RightFrame, text="Erro ao remover dados, tente novamente!", bg="#F5F5F5")
+      ErrorLabel.place(x=120, y=100)
+      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.update_manager)
+      AgainButton.place(x=120, y=150)
+
+  def list_manager(self):
+    # gerenciador = Gerenciador()
+    # gerentes = gerenciador.listar_gerentes()
+    
+    Application.limpar(self)
+    self.create_widgtes()
+    self.create_logo_adm()
+
+    text_label = tk.Label(self.window, text="Gerentes cadastrados:",  padx=10, pady=10)
+    text_label.pack()
+
+    # Criação da barra de rolagem
+    scrollbar = ttk.Scrollbar(self.RightFrame)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    
+    # Criação da lista de resultados
+    lista_gerentes = tk.Listbox(self.window, yscrollcommand=scrollbar.set, justify='center')
+    # lista_gerentes.pack(side=tk.LEFT, fill=tk.X, expand=True)
+    lista_gerentes.pack(fill="x", expand=1)
+    
+    # for gerente in gerentes:
+    #   lista_gerentes.insert(tk.END, gerente)
+
+    def mostrar_gerente_selecionado():
+      selected_item = lista_gerentes.get(tk.ACTIVE)
+      
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_adm()
+      
+      item_label = tk.Label(self.RightFrame, text="Gerente selecionado:", font="Helvetica", padx=10, pady=10)
+      item_label.pack()
+          
+      item_text = tk.Label(self.RightFrame, text=f"Id: {selected_item[0]}\nNome: {selected_item[1]}\Contato: {selected_item[2]}:\nEstoques vinculados: {selected_item[3]}", font="Helvetica", padx=10, pady=10)
+      item_text.pack()
+
+      alterar_button = tk.Button(self.RightFrame, text="Alterar", command=lambda: self.update_manager(selected_item))
+      alterar_button.pack(pady=10)
+
+      Remover_button = tk.Button(self.RightFrame, text="Remover", command=lambda: self.action_remove_manager(selected_item))
+      Remover_button.pack(pady=10)
+      
+      voltar_button = tk.Button(self.RightFrame, text="Voltar", command=self.list_manager)
+      voltar_button.pack(pady=10)
+    
+    lista_gerentes.bind("<Double-Button-1>", lambda event: mostrar_gerente_selecionado())
+
+    scrollbar.config(command=lista_gerentes.yview)
+
+    voltar_button = ttk.Button(self.window, text="Voltar", command=self.options_adm)
+    voltar_button.place(x=500,y=400)
+
 
 
 if __name__ == "__main__":
-    app = Application()
+  app = Application()
