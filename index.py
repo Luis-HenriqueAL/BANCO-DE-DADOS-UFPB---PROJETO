@@ -306,6 +306,9 @@ class Application():
     Application.limpar(self)
     self.create_widgtes()
     self.create_logo_user
+  # Fim do loop do cliente
+
+  #---------------------------------------------------------------#
   
   # Início do loop do administrador
   def admin(self):
@@ -571,7 +574,9 @@ class Application():
 
     voltar_button = ttk.Button(self.window, text="Voltar", command=self.options_adm)
     voltar_button.place(x=500,y=400)
-  # Fim do loop do administradorok
+  # Fim do loop do administrador
+
+  #---------------------------------------------------------------#
 
   # Início do loop de gerente
   def manager(self):
@@ -597,6 +602,7 @@ class Application():
     VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.inicio)
     VoltarButton.place(x=220, y=400)
 
+  # Tentativa de login do gerente
   def action_login_manager(self):
     Application.limpar(self)
     self.create_widgtes()
@@ -624,6 +630,7 @@ class Application():
       AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.manager)
       AgainButton.place(x=120, y=150)
 
+  # Exibição das opções do gerente
   def options_manager(self):
     Application.limpar(self)
     self.create_widgtes()
@@ -632,21 +639,22 @@ class Application():
     TextLabel = tk.Label(self.RightFrame, text="Selecione a opção desejada", bg="#F5F5F5")
     TextLabel.place(x=120, y=100)
 
-    BuyButton = ttk.Button(self.RightFrame, text="Cadastrar novo vendedor", command=self.register_seller)
-    BuyButton.place(x=120, y=150)
+    SellerButton = ttk.Button(self.RightFrame, text="Cadastrar novo vendedor", command=self.register_seller)
+    SellerButton.place(x=120, y=150)
 
-    UpdateButton = ttk.Button(self.RightFrame, text="Gerenciar vendedores", command=self.list_seller)
-    UpdateButton.place(x=120, y=200)
+    UpdateSellerButton = ttk.Button(self.RightFrame, text="Gerenciar vendedores", command=self.list_seller)
+    UpdateSellerButton.place(x=120, y=200)
 
-    # BuyButton = ttk.Button(self.RightFrame, text="Cadastrar novo estoque", command=self.register_stock)
-    # BuyButton.place(x=120, y=250)
+    StockButton = ttk.Button(self.RightFrame, text="Cadastrar novo estoque", command=self.register_stock)
+    StockButton.place(x=120, y=250)
 
-    # UpdateButton = ttk.Button(self.RightFrame, text="Gerenciar estoques", command=self.list_stock)
-    # UpdateButton.place(x=120, y=300)
+    UpdateStockButton = ttk.Button(self.RightFrame, text="Gerenciar estoques", command=self.list_stock)
+    UpdateStockButton.place(x=120, y=300)
 
     VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.manager)
     VoltarButton.place(x=120, y=400)
 
+  # Exibição das opções para registro de vendedores
   def register_seller(self):
     Application.limpar(self)
     self.create_widgtes()
@@ -680,9 +688,10 @@ class Application():
     SavetButton = ttk.Button(self.RightFrame, text="Salvar dados", command=self.action_register_seller)
     SavetButton.place(x=220, y=350)
 
-    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.admin)
+    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.options_manager)
     VoltarButton.place(x=220, y=400)
 
+  # Tentativa de registro de vendedor
   def action_register_seller(self):
     try:
       # Código de validação de login no BD
@@ -706,6 +715,7 @@ class Application():
       AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.register_seller)
       AgainButton.place(x=120, y=150)
 
+  # Listagem de vendedores
   def list_seller(self):
     Application.limpar(self)
     self.create_widgtes()
@@ -758,6 +768,7 @@ class Application():
     voltar_button = ttk.Button(self.window, text="Voltar", command=self.options_manager)
     voltar_button.place(x=500,y=400)
   
+  # Exibição das opções de atualização de denvedor
   def update_seller(self):
     Application.limpar(self)
     self.create_widgtes()
@@ -794,6 +805,7 @@ class Application():
     VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.client)
     VoltarButton.place(x=220, y=400)
 
+  # Tentativa de atualização de vendedor
   def action_update_seller(self):
     try:
       # Código de validação de login no BD
@@ -817,6 +829,7 @@ class Application():
       AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.update_seller)
       AgainButton.place(x=120, y=150)
   
+  # Tentativa de remoção de vendedor
   def action_remove_seller(self):
     try:
       # Código de validação de login no BD
@@ -839,11 +852,207 @@ class Application():
       ErrorLabel.place(x=120, y=100)
       AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.update_seller)
       AgainButton.place(x=120, y=150)
+  
+  # Exibição das opções para registro de estoque
+  def register_stock(self):
+    Application.limpar(self)
+    self.create_widgtes()
+    self.create_logo_manager()
+    
+    SaveAdmLabel = tk.Label(self.RightFrame, text="Nome do estoque:", bg="#f5f5f5")
+    SaveAdmLabel.place(x=70, y=50)
+    SaveAdmEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveAdmEntry.place(x=180, y=50)
 
+    SaveContactLabel = tk.Label(self.RightFrame, text="Localização:", bg="#f5f5f5")
+    SaveContactLabel.place(x=70, y=90)
+    SaveContactEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveContactEntry.place(x=180, y=90)
+
+    SaveUserIdLabel = tk.Label(self.RightFrame, text="Gerente(s)", bg="#f5f5f5")
+    SaveUserIdLabel.place(x=70, y = 130)
+    SaveUserIdEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveUserIdEntry.place(x=180, y=130)
+
+    SaveStockLabel = tk.Label(self.RightFrame, text="Data de reposição", bg="#f5f5f5")
+    SaveStockLabel.place(x=70, y=170)
+    SaveStockEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveStockEntry.place(x=180, y= 170)
+
+    SavetButton = ttk.Button(self.RightFrame, text="Salvar dados", command=self.action_register_stock)
+    SavetButton.place(x=220, y=350)
+
+    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.options_manager)
+    VoltarButton.place(x=220, y=400)
+
+  # Tentativa de registro de estoque
+  def action_register_stock(self):
+    try:
+      # Código de validação de login no BD
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_manager()     
+
+      ContinueLabel = tk.Label(self.RightFrame, text="Estoque salvo com sucesso!\nClique para continuar", bg="#F5F5F5")
+      ContinueLabel.place(x=120, y=100)
+
+      ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_manager)
+      ContinueButton.place(x=165, y=170)
+    
+    except:
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_manager()
+
+      ErrorLabel = tk.Label(self.RightFrame, text="Erro ao salvar dados, tente novamente!", bg="#F5F5F5")
+      ErrorLabel.place(x=120, y=100)
+      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.register_stock)
+      AgainButton.place(x=120, y=150)
+
+  # Listagem de estoque
+  def list_stock(self):
+    Application.limpar(self)
+    self.create_widgtes()
+    self.create_logo_manager()
+
+    # gerenciador = Gerenciador()
+    # estoques = gerenciador.listar_estoques()
+
+    text_label = tk.Label(self.window, text="Estoques cadastrados:",  padx=10, pady=10)
+    text_label.pack()
+
+    # Criação da barra de rolagem
+    scrollbar = ttk.Scrollbar(self.RightFrame)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    
+    # Criação da lista de resultados
+    lista_estoques = tk.Listbox(self.window, yscrollcommand=scrollbar.set, justify='center')
+    # lista_estoques.pack(side=tk.LEFT, fill=tk.X, expand=True)
+    lista_estoques.pack(fill="x", expand=1)
+    
+    # for estoque in estoques:
+    #   lista_estoques.insert(tk.END, lista_estoques)
+
+    def mostrar_estoque_selecionado():
+      selected_item = lista_estoques.get(tk.ACTIVE)
+      
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_manager()
+      
+      item_label = tk.Label(self.RightFrame, text="Estoque selecionado:", font="Helvetica", padx=10, pady=10)
+      item_label.pack()
+          
+      item_text = tk.Label(self.RightFrame, text=f"Nome: {selected_item[0]}\nLocalização: {selected_item[1]}\Gerente(s): {selected_item[2]}:\nData de reposição: {selected_item[3]}", font="Helvetica", padx=10, pady=10)
+      item_text.pack()
+
+      alterar_button = tk.Button(self.RightFrame, text="Alterar", command=lambda: self.update_stock(selected_item))
+      alterar_button.pack(pady=10)
+
+      Remover_button = tk.Button(self.RightFrame, text="Remover", command=lambda: self.action_remove_stock(selected_item))
+      Remover_button.pack(pady=10)
+      
+      voltar_button = tk.Button(self.RightFrame, text="Voltar", command=self.list_stock)
+      voltar_button.pack(pady=10)
+    
+    lista_estoques.bind("<Double-Button-1>", lambda event: mostrar_estoque_selecionado())
+
+    scrollbar.config(command=lista_estoques.yview)
+
+    voltar_button = ttk.Button(self.window, text="Voltar", command=self.options_manager)
+    voltar_button.place(x=500,y=400)
+
+  # Exibição das opções da atualização de estoque
+  
+  def update_stock(self):
+    Application.limpar(self)
+    self.create_widgtes()
+    self.create_logo_manager()
+    
+    SaveAdmLabel = tk.Label(self.RightFrame, text="Nome do estoque:", bg="#f5f5f5")
+    SaveAdmLabel.place(x=70, y=50)
+    SaveAdmEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveAdmEntry.place(x=180, y=50)
+
+    SaveContactLabel = tk.Label(self.RightFrame, text="Localização:", bg="#f5f5f5")
+    SaveContactLabel.place(x=70, y=90)
+    SaveContactEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveContactEntry.place(x=180, y=90)
+
+    SaveUserIdLabel = tk.Label(self.RightFrame, text="Gerente(s)", bg="#f5f5f5")
+    SaveUserIdLabel.place(x=70, y = 130)
+    SaveUserIdEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveUserIdEntry.place(x=180, y=130)
+
+    SaveStockLabel = tk.Label(self.RightFrame, text="Data de reposição", bg="#f5f5f5")
+    SaveStockLabel.place(x=70, y=170)
+    SaveStockEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveStockEntry.place(x=180, y= 170)
+
+    SavetButton = ttk.Button(self.RightFrame, text="Salvar dados", command=self.action_update_stock)
+    SavetButton.place(x=220, y=350)
+
+    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.options_manager)
+    VoltarButton.place(x=220, y=400)
+
+  # Tentativa de atualização do estoque
+  def action_update_stock(self):
+    try:
+      # Código de validação de login no BD
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_manager()     
+
+      ContinueLabel = tk.Label(self.RightFrame, text="Estoque atualizado com sucesso!\nClique para continuar", bg="#F5F5F5")
+      ContinueLabel.place(x=120, y=100)
+
+      ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_manager)
+      ContinueButton.place(x=165, y=170)
+    
+    except:
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_manager()
+
+      ErrorLabel = tk.Label(self.RightFrame, text="Erro ao atualizar dados, tente novamente!", bg="#F5F5F5")
+      ErrorLabel.place(x=120, y=100)
+      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.update_stock)
+      AgainButton.place(x=120, y=150)
+
+  # Tentativa de remoção do estoque
+  def action_remove_stock(self):
+    try:
+      # Código de validação de login no BD
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_manager()     
+
+      ContinueLabel = tk.Label(self.RightFrame, text="Estoque removido com sucesso!\nClique para continuar", bg="#F5F5F5")
+      ContinueLabel.place(x=120, y=100)
+
+      ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_manager)
+      ContinueButton.place(x=165, y=170)
+    
+    except:
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_manager()
+
+      ErrorLabel = tk.Label(self.RightFrame, text="Erro ao remover dados, tente novamente!", bg="#F5F5F5")
+      ErrorLabel.place(x=120, y=100)
+      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.update_stock)
+      AgainButton.place(x=120, y=150)
+  # Fim do loop de gerente
+
+  #---------------------------------------------------------------#
+  
+  # Início do loop de vendedor
   def seller(self):
     Application.limpar(self)
     self.create_widgtes()
     self.create_logo_seller()
+
+    
 
 
 
