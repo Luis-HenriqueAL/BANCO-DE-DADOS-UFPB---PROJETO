@@ -47,11 +47,14 @@ class Usuarios:
         return False
 
     @staticmethod
-    def alterar_senha(usuario, nova_senha):
+    def alterar_usuario(old_usuario,novo_usuario, nova_senha=None):
         hash_senha = Usuarios.criar_hash(nova_senha)
         conn = Conectar_BD.conectar()
         cursor = conn.cursor()
-        cursor.execute("UPDATE Usuarios SET Senha = ? WHERE Usuario = ?", (hash_senha, usuario))
+        id=Usuarios.pesquisar_usuario(old_usuario)
+        id = id[0]
+        print(id)
+        cursor.execute(f"UPDATE Usuarios SET Senha = ?, Usuario = ? WHERE id = ?",(hash_senha,novo_usuario,id))
         conn.commit()
         conn.close()
         return cursor.rowcount
@@ -107,7 +110,15 @@ class Clientes:
     ''', (Nome_completo.lower(), Contato, Time.lower(), animes_favoritos.lower(), endereco, Usuario_id[0]))
         conexao.commit()
         conexao.close()
-
+    @staticmethod
+    def pesquisar_cleinte_por_usuario(usuario):
+        conexao = Conectar_BD.conectar()
+        cursor = conexao.cursor()
+        cursor.execute(f"SELECT * FROM Clientes WHERE Usuario_id IN (SELECT id FROM Usuarios WHERE Usuario = '{usuario}')")
+        materiais = cursor.fetchone()
+        conexao.close()
+        return materiais
+    
     @staticmethod
     def pesquisar_por_nome_do_Clientes(nome):
         conexao = Conectar_BD.conectar()
@@ -116,13 +127,13 @@ class Clientes:
         materiais = cursor.fetchall()
         conexao.close()
         return materiais
-    def alterar_Clientes(self,id,Nome_completo,Contato,Time,Animes_Favoritos,Endereco,usuario=None,senha=None):
+    @staticmethod
+    def alterar_Clientes(id,Nome_completo,Contato,Time,Animes_Favoritos,Endereco,old_usuario,usuario,senha):
         conexao = Conectar_BD.conectar()
-        Usuario_id = Usuarios.pesquisar_usuario(usuario)
-        if(usuario!=None and senha!=None):
-            Usuarios.alterar_senha(usuario,senha)
+        Usuario_id = Usuarios.pesquisar_usuario(old_usuario)
+        Usuarios.alterar_usuario(old_usuario,usuario,senha)
         cursor = conexao.cursor()
-        cursor.execute(f"UPDATE Clientes SET Nome_completo = '{Nome_completo}', Contato = '{Contato}', Time = '{Time}', Animes_Favoritos = '{Animes_Favoritos}', Endereco = '{Endereco}',Usuario_id = '{Usuario_id[0]}' WHERE Id = {id}")
+        cursor.execute(f"UPDATE Clientes SET Nome_completo = ?, Contato = ? , Time = ?, Animes_Favoritos = ?, Endereco = ?,Usuario_id = ? WHERE Id = ?",(Nome_completo,Contato,Time,Animes_Favoritos,Endereco,Usuario_id[0],id))
         conexao.commit()
         conexao.close()
 
@@ -262,6 +273,7 @@ class Clientes:
         return "Compra realizada com sucesso."
 
 
+
 # class Clientes
 '''
 Cliente = Clientes()
@@ -269,68 +281,62 @@ Cliente.inserir_clientes('João', 'joao@example.com', 'São Paulo FC', 'One Piec
 '''
 
 class Vendedores(Clientes):
-    def __init__(self, usuario_id,usuario, senha):
-        self.id = usuario_id
+    def __init__(self,usuario, senha):
         self.usuario =usuario
         self.senha=senha    
 
     @staticmethod
     def cadastrar_Vendedor(nome, contato, Estoques_id, usuario, senha):
-        try:
-            conexao = Conectar_BD.conectar()
-            cursor = conexao.cursor()
-            Usuarios.cadastrar_usuario("Vendedor", usuario, senha)
+        conexao = Conectar_BD.conectar()
+        cursor = conexao.cursor()
+        Usuarios.cadastrar_usuario("Vendedor", usuario, senha)
 
-            query = '''
-                INSERT INTO Vendedores (Nome, Contato, Usuario_id, Estoques_id)
-                SELECT ?, ?, Usuarios.id, Estoques.id
-                FROM Usuarios
-                INNER JOIN Estoques ON Estoques.id = ?
-                WHERE Usuarios.Usuario = ?
-            '''
+        query = '''
+            INSERT INTO Vendedores (Nome, Contato, Usuario_id, Estoques_id)
+            SELECT ?, ?, Usuarios.id, Estoques.id
+            FROM Usuarios
+            INNER JOIN Estoques ON Estoques.id = ?
+            WHERE Usuarios.Usuario = ?
+        '''
 
-            cursor.execute(query, (nome, contato, Estoques_id, usuario))
-            conexao.commit()
-            print("Vendedor inserido com sucesso.")
-            conexao.close()
-        except:
-            print(f"Usuário já existe,vendedor {usuario}")
-            return
+        cursor.execute(query, (nome, contato, Estoques_id, usuario))
+        conexao.commit()
+        print("Vendedor inserido com sucesso.")
+        conexao.close()
+
 
     @staticmethod
-    def alterar_Vendedor(id, nome, contato, Estoques_id, usuario=None, senha=None):
+    def alterar_Vendedor(id, nome, contato, old_usuario, Estoques_id, usuario=None, senha=None):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
 
-        if usuario and senha:
-            Usuarios.alterar_senha(usuario, senha)
-
         query = '''
             UPDATE Vendedores
-            SET Nome = ?, Contato = ?, Usuario_id = Usuarios.id, Estoques_id = ?
-            FROM Usuarios
-            INNER JOIN Estoques ON Vendedores.Estoques_id = Estoques.id
-            WHERE Vendedores.Id = ?
+            SET Nome = ?, Contato = ?, Estoques_id = ?
+            WHERE Id = ?
         '''
 
         cursor.execute(query, (nome, contato, Estoques_id, id))
         conexao.commit()
         conexao.close()
+        if senha:
+            Usuarios.alterar_usuario(old_usuario, usuario, senha)
+
 
     @staticmethod
     def listar_todos_os_vendedores():
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute("SELECT * FROM Vendedores")
+        cursor.execute('''SELECT Vendedores.*, Estoques.Nome_estoque FROM Vendedores LEFT JOIN Estoques ON Vendedores.Estoques_id = Estoques.id''')
         Vend = cursor.fetchall()
         conexao.close()
         return Vend   
     @staticmethod
-    def pesquisar_por_nome_do_vendedor(nome):
+    def pesquisar_por_id_do_vendedor(id):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute(f"SELECT * FROM Vendedores WHERE Nome LIKE '%{nome}%'")
-        Vend = cursor.fetchall()
+        cursor.execute('''SELECT Vendedores.*, Estoques.Nome_estoque, Usuarios.Usuario FROM Vendedores LEFT JOIN Estoques ON Vendedores.Estoques_id = Estoques.id LEFT JOIN Usuarios ON Vendedores.Usuario_id = Usuarios.id''')
+        Vend = cursor.fetchone()
         conexao.close()
         return Vend
     @staticmethod
@@ -338,30 +344,30 @@ class Vendedores(Clientes):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
         cursor.execute(f"SELECT Usuario FROM Usuarios WHERE id IN (SELECT Usuario_id FROM Vendedores WHERE id = {id})")
-        Usuario = cursor.fetchall()
-        Usuarios.remover_usuario(Usuario[0][0])
+        Usuario = cursor.fetchone()
         cursor.execute(f"DELETE FROM Vendedores WHERE id = {id}")
+        conexao.commit() 
+        Usuarios.remover_usuario(Usuario[0])
         conexao.commit()        
         conexao.close()
 
     #Materiais------------------------------------------
     def inserir_material(self,Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id):
-        material_novo = Material(self.id,self.usuario,self.senha)
+        material_novo = Material(self.usuario,self.senha)
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute(f"SELECT Tipo FROM Usuarios WHERE id = {self.id}")
-        tipo_id = cursor.fetchall()
-        if(tipo_id=="Vendedor"):
-            cursor.execute(f"SELECT Estoques_id FROM Vendedores WHERE Usuario_id IN (SELECT id FROM Usuarios WHERE Usuario = '{self.usuario}')")
-            Estoque_id = cursor.fetchone()
-        else:
-            cursor.execute(f"SELECT Estoques_id FROM Gerentes WHERE Usuario_id IN (SELECT id FROM Usuarios WHERE Usuario = '{self.usuario}')")
-            Estoque_id = cursor.fetchone()
+        cursor.execute(f"SELECT Estoques_id FROM Vendedores WHERE Usuario_id IN (SELECT id FROM Usuarios WHERE Usuario = '{self.usuario}')")
+        Estoque_id = cursor.fetchone()
         material_novo.inserir(Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id, int(Estoque_id[0]))
 
-    @staticmethod
-    def listar_materiais():
-        return Material.listar_todos()
+
+    def listar_materiais(self):
+        material = Material(self.usuario,self.senha)
+        conexao = Conectar_BD.conectar()
+        cursor = conexao.cursor()
+        cursor.execute(f"SELECT Estoques_id FROM Vendedores WHERE Usuario_id IN (SELECT id FROM Usuarios WHERE Usuario = '{self.usuario}')")
+        Estoque_id = cursor.fetchone()
+        return material.listar_todos(int(Estoque_id[0]))
    
     def remover_material(self, id):
         material = Material(self.id,self.usuario,self.senha)
@@ -381,6 +387,7 @@ class Vendedores(Clientes):
             Estoque_id = cursor.fetchone()
         material.alterar(Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id, int(Estoque_id[0]))
 
+ 
     
 '''
 # class Vendedores
@@ -411,79 +418,75 @@ class Gerente(Vendedores):
 
     @staticmethod
     def inserir_gerente(nome, contato,Estoques_id,usuario, senha):
-        try:
-            conexao = Conectar_BD.conectar()
-            cursor = conexao.cursor()
-            Usuarios.cadastrar_usuario("Gerente", usuario, senha)
-            query = '''
-                INSERT INTO Gerentes (Nome, Contato, Usuario_id, Estoques_id)
-                SELECT ?, ?, Usuarios.id, Estoques.id
-                FROM Usuarios
-                INNER JOIN Estoques ON Estoques.id = ?
-                WHERE Usuarios.Usuario = ?
-                '''
-            cursor.execute(query, (nome, contato, Estoques_id, usuario))
-            conexao.commit()
-            print("Gerente inserido com sucesso.")
-            grent_id = cursor.lastrowid
-            cursor.execute('INSERT INTO Estoques_Gerentes(Estoques_id,Gerentes_id) VALUES (?, ?)', (Estoques_id,grent_id))
-            conexao.commit()
-            Gerente.atualiza_estoque(Estoques_id)
-            conexao.close()
-        except:
-            print(f"Usuário já existe, gerente {usuario}")
-        return
-       
-    def alterar_Gerente(self, id, nome, contato,Estoques_id=None, usuario=None, senha=None):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
+        Usuarios.cadastrar_usuario("Gerente", usuario, senha)
+        query = '''
+            INSERT INTO Gerentes (Nome, Contato, Usuario_id, Estoques_id)
+            SELECT ?, ?, Usuarios.id, Estoques.id
+            FROM Usuarios
+            INNER JOIN Estoques ON Estoques.id = ?
+            WHERE Usuarios.Usuario = ?
+            '''
+        cursor.execute(query, (nome, contato, Estoques_id, usuario))
+        conexao.commit()
+        print("Gerente inserido com sucesso.")
+        grent_id = cursor.lastrowid
+        cursor.execute('INSERT INTO Estoques_Gerentes(Estoques_id,Gerentes_id) VALUES (?, ?)', (Estoques_id,grent_id))
+        conexao.commit()
+        Gerente.atualiza_estoque(Estoques_id)
+        conexao.close()
         
-        if usuario is not None and senha is not None:
-            Usuarios.alterar_senha(usuario, senha)
-        
+    @staticmethod   
+    def alterar_Gerente(id, nome, contato, old_usuario, Estoques_id=None, usuario=None, senha=None):
+        conexao = Conectar_BD.conectar()
+        cursor = conexao.cursor()
 
         query = '''
             UPDATE Gerentes
-            SET Nome = ?, Contato = ?, Usuario_id = Usuarios.id, Estoques_id = ?
-            FROM Usuarios
-            INNER JOIN Estoques ON Gerentes.Estoques_id = Estoques.id
-            WHERE Gerentes.Id = ?
+            SET Nome = ?, Contato = ?, Usuario_id = (SELECT id FROM Usuarios WHERE Usuario = ?), Estoques_id = ?
+            WHERE Id = ?
         '''
-        
-        cursor.execute(query, (nome, contato, Estoques_id, id))
+        cursor.execute(query, (nome, contato, old_usuario, Estoques_id, id))
         conexao.commit()
         conexao.close()
+        if senha != None:
+            Usuarios.alterar_usuario(old_usuario, usuario, senha)
+
 
     @staticmethod
-    def listar_todos():
+    def listar_todos_os_gerentes():
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute("SELECT * FROM Gerentes")
+        cursor.execute('''SELECT Gerentes.*, Estoques.Nome_estoque FROM Gerentes LEFT JOIN Estoques ON Gerentes.Estoques_id = Estoques.id''')
         Gerent = cursor.fetchall()
         conexao.close()
         return Gerent
     
     @staticmethod
-    def pesquisar_por_nome(nome):
+    def pesquisar_por_id_gerente(id):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute(f"SELECT * FROM Gerentes WHERE Nome LIKE '%{nome}%'")
-        Gerent = cursor.fetchall()
+        cursor.execute('''SELECT Gerentes.*, Estoques.Nome_estoque, Usuarios.Usuario FROM Gerentes LEFT JOIN Estoques ON Gerentes.Estoques_id = Estoques.id LEFT JOIN Usuarios ON Gerentes.Usuario_id = Usuarios.id''')
+        Gerent = cursor.fetchone()
         conexao.close()
         return Gerent
     
     @staticmethod
-    def remover(id):
+    def remover_gerente(id):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
         cursor.execute(f"SELECT Usuario FROM Usuarios WHERE id IN (SELECT Usuario_id FROM Gerentes WHERE id = {id})")
-        Usuario = cursor.fetchall()
-        Usuarios.remover_usuario(Usuario[0][0])
+        Usuario = cursor.fetchone()
+        conexao.commit()
         cursor.execute(f"SELECT Estoques_id FROM Gerentes WHERE Id = {id}")
         Estoques_id = cursor.fetchone()
-        Gerente.atualiza_estoque(int(Estoques_id))
+        conexao.commit()
         cursor.execute(f"DELETE FROM Gerentes WHERE Id = {id}")
+        conexao.commit()
         Gerente.atualiza_estoque(Estoques_id[0])
+        conexao.commit()
+        Usuarios.remover_usuario(Usuario[0])       
         conexao.commit()
         conexao.close()
     #Fabricante---------------------------------------------------------
@@ -516,8 +519,8 @@ class Estoques:
         self.id = usuario_id
         self.usuario =usuario
         self.senha=senha
-    
-    def inserir_novo_estoque(self, localizacao, nome_estoque, ultima_data_reposicao, data_reposicao_futura):
+    @staticmethod
+    def inserir_novo_estoque(localizacao, nome_estoque, ultima_data_reposicao, data_reposicao_futura):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
 
@@ -530,34 +533,41 @@ class Estoques:
         conexao.commit()
         print("Novo estoque inserido com sucesso!")
         conexao.close()
-
-    def remover_estoque(self, estoque_id):
+    @staticmethod
+    def remover_estoque(estoque_id):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
         cursor.execute('DELETE FROM Estoques WHERE id = ?', (estoque_id,))
         conexao.commit()
         print("Estoque removido com sucesso!")
-    
-    def alterar_estoque(self, id, localizacao, nome_estoque, ultima_data_reposicao, data_reposicao_futura):
+    @staticmethod
+    def alterar_estoque( id, localizacao, nome_estoque, ultima_data_reposicao, data_reposicao_futura):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
 
         query = '''
-            UPDATE Estoques
-            SET Localização = ?,
-                Nome_estoque = ?,
-                Última_data_reposição = ?,
-                Data_reposição_futura = ?
-            WHERE Estoques.Id = ?
-        '''
+        UPDATE Estoques
+        SET Localização = ?,
+            Nome_estoque = ?,
+            Última_data_reposição = ?,
+            Data_reposição_futura = ?
+        WHERE id = ?
+    '''
         cursor.execute(query, (localizacao, nome_estoque, ultima_data_reposicao, data_reposicao_futura, id))
         conexao.commit()
         conexao.close()
     @staticmethod
-    def pesquisar_por_nome_estoque(nome):
+    def pesquisar_por_id_estoque(id):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute(f"SELECT * FROM Estoques WHERE Nome_estoque LIKE '%{nome}%'")
+        cursor.execute(f"SELECT * FROM Estoques WHERE id ={id} ")
+        Estoq = cursor.fetchone()
+        return Estoq
+    @staticmethod
+    def listar_todos_estoques():
+        conexao = Conectar_BD.conectar()
+        cursor = conexao.cursor()
+        cursor.execute(f"SELECT id,Nome_estoque,Localização FROM Estoques ")
         Estoq = cursor.fetchall()
         return Estoq
 '''
@@ -571,7 +581,8 @@ class Fabricantes:
         self.usuario_id = usuario_id
         self.usuario =usuario
         self.senha=senha
-    def inserir(self, nome, localizacao):
+    @staticmethod
+    def inserir(nome, localizacao):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
         cursor.execute('''
@@ -580,27 +591,27 @@ class Fabricantes:
         ''', (nome,localizacao))
         conexao.commit()
         conexao.close()
-
-    def alterar(self,id,nome, produtos_fornecidos, localizacao, contato_gerente):
+    @staticmethod
+    def alterar(id,nome, localizacao):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute(f"UPDATE Fabricante SET Nome = '{nome}', Produtos_fornecidos = {produtos_fornecidos}, Localização = '{localizacao}', Contato_gerente = {contato_gerente} WHERE Id = {id}")
+        cursor.execute(f"UPDATE Fabricante SET Nome = '{nome}', Localização = '{localizacao}'  WHERE Id = {id}")
         conexao.commit()
         conexao.close()
     @staticmethod
     def listar_todos():
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute("SELECT * FROM Fabricante")
+        cursor.execute("SELECT id,Nome,Localização FROM Fabricante")
         Fabrican = cursor.fetchall()
         conexao.close()
         return Fabrican
     @staticmethod
-    def pesquisar_por_nome(nome):
+    def pesquisar_por_id(id):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute(f"SELECT * FROM Fabricante WHERE Nome LIKE '%{nome}%'")
-        Fabrican = cursor.fetchall()
+        cursor.execute(f"SELECT * FROM Fabricante WHERE id = {id}")
+        Fabrican = cursor.fetchone()
         conexao.close()
         return Fabrican
     def remover(self,id):
@@ -619,8 +630,7 @@ fabricantes.pesquisar_por_nome('Fabricante A')
 fabricantes.remover(2)
 '''
 class Material:
-    def __init__(self, usuario_id,usuario, senha):
-        self.usuario_id = usuario_id
+    def __init__(self,usuario, senha):
         self.usuario =usuario
         self.senha=senha
 
@@ -629,9 +639,9 @@ class Material:
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
         cursor.execute(f"SELECT Nome FROM Materiais WHERE id IN (SELECT Material_id FROM Materiais_Fabricantes WHERE Fabricante_id = '{Fabricante_id}')")
-        MAT = cursor.fetchall()
+        MATe = cursor.fetchall()
         lista_Materiais = ''
-        for i in MAT:
+        for i in MATe:
             lista_Materiais = lista_Materiais +f"Nome do Item: {i[0]}"
         cursor.execute(f"UPDATE Fabricante SET Produtos_fornecidos = '{lista_Materiais}' WHERE id = {Fabricante_id}" )
         conexao.commit()
@@ -658,11 +668,11 @@ class Material:
         Material.atualiza_fabricante(Fabricante_id)
         conexao.close()
 
-    @staticmethod
-    def listar_todos():
-        conexao = Material.conectar()
+    
+    def listar_todos(self,Estoque_id):
+        conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute("SELECT * FROM Materiais")
+        cursor.execute(f"SELECT id,Nome,Preço FROM Materiais WHERE Estoque_id= {Estoque_id}")
         materiais = cursor.fetchall()
         conexao.close()
         return materiais
@@ -676,19 +686,16 @@ class Material:
         conexao.close()
         return material
 
-    def alterar(self, Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id, Estoque_id):
+    def alterar(self, id,Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id, Estoque_id):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
 
         query = '''
             UPDATE Materiais
             SET Nome = ?, Descrição = ?, Preço = ?, Quantidade_estoque = ?, Fabricante_id = ?, Estoque_id = ?
-            FROM Fabricante
-            INNER JOIN Estoques ON Estoques.id = ?
-            WHERE Materiais.id = ?
-            AND Fabricante.id = ?
+            WHERE id = ?
         '''
-        cursor.execute(query, (Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id, Estoque_id, Estoque_id, self.id, Fabricante_id))
+        cursor.execute(query, (Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id, Estoque_id, id))
         Material.atualiza_fabricante(Fabricante_id)
         conexao.commit()
         conexao.close()
@@ -703,36 +710,3 @@ class Material:
         conexao.commit()
         conexao.close()
 
-
-class ADM:
-    @staticmethod
-    def iniciar():
-        Usuarios.cadastrar_usuario('Administrador', 'admin', '1234')
-        estq = Estoques(1,'admin', '1234')
-        estq.inserir_novo_estoque("CASA", "MINHA CASA.COM", "12/11/2011", "15/08/2027")
-        gere = Gerente(1,'admin', '1234')
-        gere.inserir_gerente("João", "joao@example.com",1,"gerent12", "12345")
-        gere.cadastrar_Vendedor("João", "joao@example.com",1,"Netinho12", "12345")
-        gere.inserir_gerente("João2", "joao@example.com",1,"gerent122", "12345")
-        gere.cadastrar_fornecedor("JORGE","LONGE")
-        gere = Gerente(2,"gerent12", "12345")
-        gere.inserir_material("Nome1", "Descrição2", 12, 1, 1)
-        print(Estoques.pesquisar_por_nome_estoque("minha"))
-        gere.inserir_clente('João', 'joao@example.com', 'São Paulo FC', 'One Piece, Naruto', 'Rua A, 123', "Netinho3", "12345")
-        
-
-
-    def testes():
-        nome_estoque = "minha"
-        #print(Estoques.pesquisar_por_nome_estoque(nome_estoque))
-        gere = Gerente(2,"gerent12", "12345")
-        vend= Vendedores(3,"Netinho12", "12345")
-        #gere.inserir_material("Nome1", "Descrição2", 12, 1, 1)
-        #gere.inserir_gerente("João2", "joao@example.com", 1,None,"gerent122", "12345")
-        #gere.inserir_clente('João', 'joao@example.com', 'São Paulo FC', 'One Piece, Naruto', 'Rua A, 123', "Netinho3", "12345")
-        #gere.remover_vendedor(1)
-        #gere.remover_clente(1)
-        
-            
-
-ADM.iniciar()
