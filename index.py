@@ -81,14 +81,23 @@ class Application():
     
      # Criar o menu "Arquivo"
     barra_menu = tk.Menu(self.window)
-    menu_arquivo = tk.Menu(barra_menu, tearoff=0)
-    menu_arquivo.add_command(label="Login",font=8,command=self.admin)
-    menu_arquivo.add_command(label="Relatorio Gereral",font=8)
-    menu_arquivo.add_separator()
-    menu_arquivo.add_command(label="Sair", command=self.window,font=8)
+    
+    menu1= tk.Menu(barra_menu, tearoff=0)
+    menu1.add_command(label="Login",font=8,command=self.admin)
+    menu1.add_command(label="Relatório Geral",font=8)
+    # , command=self.general_relatory)
+
+    menu2 = tk.Menu(barra_menu, tearoff=0)
+    menu2.add_command(label="Login", font=8, command=self.manager)
+
+    menu3 = tk.Menu(barra_menu, tearoff=0)
+    menu3.add_command(label="Login", font=8, command=self.seller)
 
     # Adicionar o menu "Arquivo" à barra de menu
-    barra_menu.add_cascade(label="Gerencia", menu=menu_arquivo)
+    barra_menu.add_cascade(label="Administrador", menu=menu1)
+    barra_menu.add_cascade(label="Gerente", menu=menu2)
+    barra_menu.add_cascade(label="Vendedor", menu=menu3)
+
     # Adicionar a barra de menu à janela
     self.window.config(menu=barra_menu)
     
@@ -105,6 +114,8 @@ class Application():
 
     ButtonAdmin = ttk.Button(self.RightFrame, text="Iniciar compras", width=35, command=self.sales_client)
     ButtonAdmin.place(x=150, y=230)
+  
+  #-----------------------------------------------------------#
   # Início do loop do cliente
   def client(self):
     Application.limpar(self)
@@ -656,14 +667,76 @@ class Application():
 
     scrollbar.config(command=lista_gerentes.yview)
 
-    voltar_button = ttk.Button(self.RightFrame, text="Voltar", command=self.options_adm)
-    voltar_button.place(x=500, y=400)
+    voltar_button = ttk.Button(self.window, text="Voltar", command=self.options_adm)
+    voltar_button.place(x=450, y=400)
 
   # Fim do loop do administrador
 
   #---------------------------------------------------------------#
 
   # Início do loop de gerente
+  def manager(self):
+    Application.limpar(self)
+    self.create_widgtes()
+    self.create_logo_manager()
+
+    UserLabel = tk.Label(self.RightFrame, text="Usuário:", bg="#F5F5F5")
+    UserLabel.place(x=70, y=50)
+
+    self.UserEntry_manager = ttk.Entry(self.RightFrame, width=20)
+    self.UserEntry_manager.place(x=180, y=50)
+
+    PassLabel = tk.Label(self.RightFrame, text="Senha:", bg="#F5F5F5")
+    PassLabel.place(x=70, y=100)
+
+    self.PassEntry_manager = ttk.Entry(self.RightFrame, width=20)
+    self.PassEntry_manager.place(x=180, y=100)
+
+    LoginButton = ttk.Button(self.RightFrame, text="Login", width=20, command = self.action_login_manager)
+    LoginButton.place(x=180, y=140)
+
+    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.inicio)
+    VoltarButton.place(x=220, y=400)
+
+  def action_login_manager(self):
+    usuario_logado = self.UserEntry_manager.get()
+    senha_logada = self.PassEntry_manager.get()
+    autenticado = Usuarios.autenticar_usuario(usuario_logado,senha_logada)
+    if autenticado:
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_manager()     
+      tipo = Usuarios.pesquisar_usuario(usuario_logado)
+      if(tipo[1]=="Vendedor"):
+        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
+        ContinueLabel.place(x=120, y=100)
+        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=lambda: self.options_seller(usuario_logado,senha_logada))
+        ContinueButton.place(x=165, y=170)
+      elif(tipo[1]=="Gerente"):
+        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
+        ContinueLabel.place(x=120, y=100)
+        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_manager)
+        ContinueButton.place(x=165, y=170)
+      elif(tipo[1]=="Administrador"):
+        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
+        ContinueLabel.place(x=120, y=100)
+        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_adm)
+        ContinueButton.place(x=165, y=170)
+      else:
+        ContinueLabel = tk.Label(self.RightFrame, text="Area restrita, somente funcionarios", bg="#F5F5F5")
+        ContinueLabel.place(x=120, y=100)
+        ContinueButton = ttk.Button(self.RightFrame, text="Voltar para o menu principal", width=30, command=self.options_adm)
+        ContinueButton.place(x=165, y=170)
+    else:
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_manager()
+
+      ErrorLabel = tk.Label(self.RightFrame, text="Erro ao fazer login, tente novamente!", bg="#F5F5F5")
+      ErrorLabel.place(x=120, y=100)
+      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.manager)
+      AgainButton.place(x=120, y=150)
+
   # Exibição das opções do gerente
   def options_manager(self):
     Application.limpar(self)
@@ -814,10 +887,10 @@ class Application():
 
     scrollbar.config(command=lista_vendedores.yview)
 
-    voltar_button = ttk.Button(self.RightFrame, text="Voltar", command=self.options_adm)
+    voltar_button = ttk.Button(self.window, text="Voltar", command=self.options_adm)
     voltar_button.place(x=500, y=400)
   
-  # Exibição das opções de atualização de denvedor
+  # Exibição das opções de atualização de vendedor
   def update_seller(self,id_seller):
     Application.limpar(self)
     self.create_widgtes()
@@ -1307,7 +1380,7 @@ class Application():
 
     scrollbar.config(command=lista_fornecedores.yview)
 
-    voltar_button = ttk.Button(self.RightFrame, text="Voltar", command=self.options_adm)
+    voltar_button = ttk.Button(self.window, text="Voltar", command=self.options_adm)
     voltar_button.place(x=500, y=400)
   
   def update_supplier(self,id):
@@ -1360,6 +1433,68 @@ class Application():
   #---------------------------------------------------------------#
   
   # Início do loop de vendedor
+
+  def seller(self):
+    Application.limpar(self)
+    self.create_widgtes()
+    self.create_logo_seller()
+
+    UserLabel = tk.Label(self.RightFrame, text="Usuário:", bg="#F5F5F5")
+    UserLabel.place(x=70, y=50)
+
+    self.UserEntry_seller = ttk.Entry(self.RightFrame, width=20)
+    self.UserEntry_seller.place(x=180, y=50)
+
+    PassLabel = tk.Label(self.RightFrame, text="Senha:", bg="#F5F5F5")
+    PassLabel.place(x=70, y=100)
+
+    self.PassEntry_seller = ttk.Entry(self.RightFrame, width=20)
+    self.PassEntry_seller.place(x=180, y=100)
+
+    LoginButton = ttk.Button(self.RightFrame, text="Login", width=20, command = self.action_login_seller)
+    LoginButton.place(x=180, y=140)
+
+    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.inicio)
+    VoltarButton.place(x=220, y=400)
+
+  def action_login_seller(self):
+    usuario_logado = self.UserEntry_seller.get()
+    senha_logada = self.PassEntry_seller.get()
+    autenticado = Usuarios.autenticar_usuario(usuario_logado,senha_logada)
+    if autenticado:
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_seller()     
+      tipo = Usuarios.pesquisar_usuario(usuario_logado)
+      if(tipo[1]=="Vendedor"):
+        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
+        ContinueLabel.place(x=120, y=100)
+        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=lambda: self.options_seller(usuario_logado,senha_logada))
+        ContinueButton.place(x=165, y=170)
+      elif(tipo[1]=="Gerente"):
+        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
+        ContinueLabel.place(x=120, y=100)
+        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_manager)
+        ContinueButton.place(x=165, y=170)
+      elif(tipo[1]=="Administrador"):
+        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
+        ContinueLabel.place(x=120, y=100)
+        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_adm)
+        ContinueButton.place(x=165, y=170)
+      else:
+        ContinueLabel = tk.Label(self.RightFrame, text="Area restrita, somente funcionarios", bg="#F5F5F5")
+        ContinueLabel.place(x=120, y=100)
+        ContinueButton = ttk.Button(self.RightFrame, text="Voltar para o menu principal", width=30, command=self.options_adm)
+        ContinueButton.place(x=165, y=170)
+    else:
+      Application.limpar(self)
+      self.create_widgtes()
+      self.create_logo_seller()
+
+      ErrorLabel = tk.Label(self.RightFrame, text="Erro ao fazer login, tente novamente!", bg="#F5F5F5")
+      ErrorLabel.place(x=120, y=100)
+      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.seller)
+      AgainButton.place(x=120, y=150)
 
   # Exibição das opções do vendedor
   def options_seller(self,usuario,senha):
