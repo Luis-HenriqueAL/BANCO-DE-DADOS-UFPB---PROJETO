@@ -1,4 +1,5 @@
 import sqlite3
+from classes import Usuarios, Estoques
 conn = sqlite3.connect('D:\GITHUB\BANCO-DE-DADOS-UFPB---PROJETO\Materiais_de_Construcao.db')
 cursor = conn.cursor()
 # Criar tabela Materiais
@@ -123,3 +124,6 @@ cursor.execute('''
 ''')
 conn.commit()
 conn.close()
+Usuarios.cadastrar_usuario('Administrador', 'admin', '1234')
+estq = Estoques(1,'admin', '1234')
+estq.inserir_novo_estoque("CI", "LJ-construções", "12/05/2023", "15/08/2023")
