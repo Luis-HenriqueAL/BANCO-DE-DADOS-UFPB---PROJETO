@@ -147,80 +147,91 @@ class Clientes:
         cursor.execute(f"DELETE FROM Clientes WHERE Id = {id}")
         conexao.commit()
         conexao.close()
-
-    def pesquisar_all(texto, preco_min, preco_max):
+    @staticmethod
+    def pesquisar_all(texto=None, preco_min=None, preco_max=None, filtro=None, Estoque_id=None):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        palavras = re.split(',|;', texto)
-        materiais_encontrados = set()
-        fabricantes_encontrados = set()
 
-        for palavra in palavras:
-            # Verificar se a palavra é um nome de material da tabela "Materiais"
-            cursor.execute('SELECT id, Nome, Preço FROM Materiais WHERE Nome = ?', (palavra,))
-            resultado_material = cursor.fetchone()
+        if texto is not None:
+            palavras = re.split(r",|;", texto)
+            materiais_encontrados = set()
+            fabricantes_encontrados = set()
 
-            if resultado_material:
-                id_material = resultado_material[0]
-                nome_material = resultado_material[1]
-                preco_material = resultado_material[2]
-                materiais_encontrados.add((id_material, nome_material, preco_material))
+            for palavra in palavras:
+                cursor.execute('''
+                    SELECT id, Nome, Preço
+                    FROM Materiais
+                    WHERE Nome = ?
+                ''', (palavra,))
+                resultado_material = cursor.fetchone()
 
-            # Verificar se a palavra é um nome de fabricante da tabela "Fabricante"
-            cursor.execute('SELECT id, Nome FROM Fabricante WHERE Nome = ?', (palavra,))
-            resultado_fabricante = cursor.fetchone()
+                if resultado_material:
+                    materiais_encontrados.add(resultado_material)
 
-            if resultado_fabricante:
-                id_fabricante = resultado_fabricante[0]
-                nome_fabricante = resultado_fabricante[1]
-                fabricantes_encontrados.add((id_fabricante, nome_fabricante))
+                cursor.execute('''
+                    SELECT id, Nome
+                    FROM Fabricante
+                    WHERE Nome = ?
+                ''', (palavra,))
+                resultado_fabricante = cursor.fetchone()
 
-        # Consulta SQL para recuperar produtos dentro da faixa de preço e seus fabricantes
-        query = '''
-            SELECT Materiais.id, Materiais.Nome, Materiais.Preço, Fabricante.Nome
-            FROM Materiais
-            INNER JOIN Fabricante ON Materiais.Fabricante_id = Fabricante.id
-            WHERE (Materiais.Nome IN ({}) OR Fabricante.Nome IN ({}))
-            AND Materiais.Preço >= ? AND Materiais.Preço <= ?
-        '''.format(','.join('?' * len(materiais_encontrados)), ','.join('?' * len(fabricantes_encontrados)))
+                if resultado_fabricante:
+                    fabricantes_encontrados.add(resultado_fabricante)
 
-        parametros = [item for sublist in materiais_encontrados for item in sublist] + [item for sublist in fabricantes_encontrados for item in sublist] + [preco_min, preco_max]
-        cursor.execute(query, parametros)
-        resultados = cursor.fetchall()
+            query = '''
+                SELECT Materiais.id, Materiais.Nome, Materiais.Preço, Fabricante.Nome
+                FROM Materiais
+                INNER JOIN Fabricante ON Materiais.Fabricante_id = Fabricante.id
+                WHERE (Materiais.Nome IN ({}) OR Fabricante.Nome IN ({}))
+            '''.format(','.join('?' * len(materiais_encontrados)), ','.join('?' * len(fabricantes_encontrados)))
 
-        # Exibindo os materiais encontrados
-        if materiais_encontrados:
-            print("Materiais encontrados:")
-            for material in materiais_encontrados:
-                id_material = material[0]
-                nome_material = material[1]
-                preco_material = material[2]
-                print(f"ID: {id_material}, Material: {nome_material}, Preço: {preco_material}")
+            parametros = [item for sublist in materiais_encontrados for item in sublist] + [item for sublist in fabricantes_encontrados for item in sublist]
 
-        # Exibindo os fabricantes encontrados
-        if fabricantes_encontrados:
-            print("Fabricantes encontrados:")
-            for fabricante in fabricantes_encontrados:
-                id_fabricante = fabricante[0]
-                nome_fabricante = fabricante[1]
-                print(f"ID: {id_fabricante}, Fabricante: {nome_fabricante}")
-
-        # Exibindo os resultados da junção entre Materiais e Fabricante
-        Lista_encontrada = ""
-        if resultados:
-            print("Resultados:")
-            for resultado in resultados:
-                id_material = resultado[0]
-                nome_material = resultado[1]
-                preco_material = resultado[2]
-                nome_fabricante = resultado[3]
-                print(f"ID: {id_material}, Material: {nome_material}, Preço: {preco_material}, Fabricante: {nome_fabricante}")
-                Lista_encontrada = Lista_encontrada + f"ID: {id_material}, Material: {nome_material}, Preço: {preco_material}, Fabricante: {nome_fabricante}"
         else:
-            print("Nenhum resultado encontrado.")
-        return Lista_encontrada
+            query = '''
+                SELECT Materiais.id, Materiais.Nome, Materiais.Preço, Fabricante.Nome
+                FROM Materiais
+                INNER JOIN Fabricante ON Materiais.Fabricante_id = Fabricante.id
+            '''
+            parametros = []
+
+        if preco_min is not None:
+            query += ' AND Materiais.Preço >= ?'
+            parametros.append(preco_min)
+
+        if preco_max is not None:
+            query += ' AND Materiais.Preço <= ?'
+            parametros.append(preco_max)
+
+        if filtro is not None:
+            query += ' AND Materiais.Quantidade_estoque < ?'
+            parametros.append(filtro)
+
+        if Estoque_id is not None:
+            query += ' AND Materiais.Estoque_id = ?'
+            parametros.append(Estoque_id)
+
+        resultados = cursor.execute(query, parametros).fetchall()
+
+        print("Materiais encontrados:")
+        for material in materiais_encontrados:
+            print(f"ID: {material[0]}, Material: {material[1]}, Preço: {material[2]}")
+
+        print("Fabricantes encontrados:")
+        for fabricante in fabricantes_encontrados:
+            print(f"ID: {fabricante[0]}, Fabricante: {fabricante[1]}")
+
+        print("Resultados:")
+        for resultado in resultados:
+            print(f"ID: {resultado[0]}, Material: {resultado[1]}, Preço: {resultado[2]}, Fabricante: {resultado[3]}")
+
+        if resultados:
+            return resultados
+        else:
+            return "Nenhum resultado encontrado."
 
         conexao.close()
+
 
     def efetivar_compra(quantidade, id_material, id_cliente, id_vendedor, data_compra, forma_pagamento):
         conn = sqlite3.connect('D:/UFPB/BD/BD_2/Materiais_de_Construcao.db')
@@ -358,6 +369,7 @@ class Vendedores(Clientes):
         cursor = conexao.cursor()
         cursor.execute(f"SELECT Estoques_id FROM Vendedores WHERE Usuario_id IN (SELECT id FROM Usuarios WHERE Usuario = '{self.usuario}')")
         Estoque_id = cursor.fetchone()
+        conexao.commit()
         material_novo.inserir(Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id, int(Estoque_id[0]))
 
 
@@ -367,26 +379,32 @@ class Vendedores(Clientes):
         cursor = conexao.cursor()
         cursor.execute(f"SELECT Estoques_id FROM Vendedores WHERE Usuario_id IN (SELECT id FROM Usuarios WHERE Usuario = '{self.usuario}')")
         Estoque_id = cursor.fetchone()
+        conexao.commit()
         return material.listar_todos(int(Estoque_id[0]))
    
     def remover_material(self, id):
         material = Material(self.id,self.usuario,self.senha)
         material.remover(id)
     
-    def alterar_material(self,Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id):
-        material = Material(self.id,self.usuario,self.senha)
+    def alterar_material(self,id,Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id):
+        material = Material(self.usuario,self.senha)
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute(f"SELECT Tipo FROM Usuarios WHERE id = {self.id}")
-        tipo_id = cursor.fetchall()
-        if(tipo_id=="Vendedor"):
-            cursor.execute(f"SELECT Estoques_id FROM Vendedores WHERE Usuario_id IN (SELECT id FROM Usuarios WHERE Usuario = '{self.usuario}')")
-            Estoque_id = cursor.fetchone()
-        else:
-            cursor.execute(f"SELECT Estoques_id FROM Gerentes WHERE Usuario_id IN (SELECT id FROM Usuarios WHERE Usuario = '{self.usuario}')")
-            Estoque_id = cursor.fetchone()
-        material.alterar(Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id, int(Estoque_id[0]))
-
+        cursor.execute(f"SELECT Estoques_id FROM Vendedores WHERE Usuario_id IN (SELECT id FROM Usuarios WHERE Usuario = '{self.usuario}')")
+        Estoque_id = cursor.fetchone()
+        conexao.commit()
+        conexao.close()
+        material.alterar(id,Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id, int(Estoque_id[0]))
+    def pesquisa_material_especifico(self,texto, preco_min, preco_max,filtro=None):
+        conexao = Conectar_BD.conectar()
+        cursor = conexao.cursor()
+        cursor.execute(f"SELECT Estoques_id FROM Vendedores WHERE Usuario_id IN (SELECT id FROM Usuarios WHERE Usuario = '{self.usuario}')")
+        Estoque_id = cursor.fetchone()
+        conexao.commit()
+        return Clientes.pesquisar_all(texto, preco_min, preco_max,filtro,int(Estoque_id[0]))
+        
+        
+        
  
     
 '''
@@ -669,17 +687,23 @@ class Material:
         conexao.close()
 
     
-    def listar_todos(self,Estoque_id):
+    def listar_todos(self, Estoque_id):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute(f"SELECT id,Nome,Preço FROM Materiais WHERE Estoque_id= {Estoque_id}")
+        cursor.execute(f'''
+            SELECT Materiais.id, Materiais.Nome, Materiais.Preço, Materiais.Quantidade_estoque, Fabricante.Nome
+            FROM Materiais
+            INNER JOIN Fabricante ON Materiais.Fabricante_id = Fabricante.id
+            WHERE Materiais.Estoque_id = {Estoque_id}
+        ''')
         materiais = cursor.fetchall()
         conexao.close()
         return materiais
 
+
     @staticmethod
-    def exibir_um(id):
-        conexao = Material.conectar()
+    def pesquisar_por_id(id):
+        conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
         cursor.execute(f"SELECT * FROM Materiais WHERE Id = {id}")
         material = cursor.fetchone()
@@ -696,17 +720,24 @@ class Material:
             WHERE id = ?
         '''
         cursor.execute(query, (Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id, Estoque_id, id))
+        conexao.commit()
         Material.atualiza_fabricante(Fabricante_id)
         conexao.commit()
         conexao.close()
-
-    def remover(self,id):
+    @staticmethod
+    def remover(id):
         conexao = Conectar_BD.conectar()
         cursor = conexao.cursor()
-        cursor.execute(f"SELECT Fabricante_id FROM Materiais WHERE Id = {id}")
-        Fabricante_id = cursor.fetchone()
-        Material.atualiza_fabricante(int(Fabricante_id[0]))
-        cursor.execute(f"DELETE FROM Materiais WHERE Id = {id}")
+
+        cursor.execute("SELECT Fabricante_id FROM Materiais WHERE Id = ?", (id,))
+        Fabricante_id = cursor.fetchone()[0]
+
+        cursor.execute("DELETE FROM Materiais WHERE Id = ?", (id,))
+        conexao.commit()
+        Material.atualiza_fabricante(int(Fabricante_id))
+
+        cursor.execute("DELETE FROM Materiais_Fabricantes WHERE Material_id = ? AND Fabricante_id = ?", (id, Fabricante_id))
+
         conexao.commit()
         conexao.close()
 
