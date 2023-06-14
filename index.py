@@ -6,6 +6,7 @@ from tkinter import ttk
 from tkinter import font
 import random
 from datetime import datetime
+import textwrap
 
 class Application():
 
@@ -109,7 +110,7 @@ class Application():
     DescLabel = tk.Label(self.RightFrame, text="Faça login ou inicie suas compras", font=text_font, bg="#F5F5F5")
     DescLabel.place(x=70, y=80)
 
-    ButtonClient = ttk.Button(self.RightFrame, text="Login", width=35, command=self.client)
+    ButtonClient = ttk.Button(self.RightFrame, text="Login", width=35, command=self.client)#command=self.client)
     ButtonClient.place(x=150, y=170)
 
     ButtonAdmin = ttk.Button(self.RightFrame, text="Iniciar compras", width=35, command=self.sales_client)
@@ -358,6 +359,62 @@ class Application():
     Application.limpar(self)
     self.create_widgtes()
     self.create_logo_user
+    user_entry_label = tk.Label(self.window, text="Pesquisar:",  padx=10, pady=5)
+    user_entry_label.place(x=260, y=22)
+    user_entry = tk.Entry(self.window)
+    user_entry.place(x=374, y=28)
+   
+    price_label = tk.Label(self.window, text="faixa-preço:", padx=10, pady=5)
+    price_label.place(x=440, y=60)
+    price_entry = tk.Entry(self.window,width=5)
+    price_entry.place(x=574, y=64)
+    espace = tk.Label(self.window, text="-", padx=10, pady=5)
+    espace.place(x=644, y=60)
+    price_hight_entry = tk.Entry(self.window,width=5)
+    price_hight_entry.place(x=684, y=64)
+    
+    voltar_Pesquisar = ttk.Button(self.window, text="Pesquisar")
+    voltar_Pesquisar.place(x=650, y=30)
+    
+    def mostrar_material_selecionado(id):
+        selected_item = listbox.get(tk.ACTIVE)
+        selected_item= selected_item.split("-")
+        Application.limpar(self)
+        self.create_widgtes()
+        self.create_logo_seller()
+        text_font = font.Font(family="Helvetica", size=self.default_font.cget("size") + 4,weight="bold")
+
+        voltar_button.place(x=50, y=380)
+        
+    # Criar as barras de rolagem
+    scrollbar_y = tk.Scrollbar(self.window)
+    scrollbar_y.place(x=600, y=100, height=200)
+
+    scrollbar_x = tk.Scrollbar(self.window, orient=tk.HORIZONTAL)
+    scrollbar_x.place(x=260, y=320, width=344)
+
+    # Criar a Listbox com largura aumentada e associar as barras de rolagem
+    listbox = tk.Listbox(
+        self.window,
+        width=44,
+        yscrollcommand=scrollbar_y.set,
+        xscrollcommand=scrollbar_x.set
+    )
+    listbox.place(x=260, y=100)
+
+    # Associar as barras de rolagem à Listbox
+    scrollbar_y.config(command=listbox.yview)
+    scrollbar_x.config(command=listbox.xview)
+
+    # Adicionar IDs e nomes dos materiais à Listbox
+    for material in materiais:
+        listbox.insert(tk.END, f"{material[0]} - Nome: {material[1]} - Preço: {material[2]} - Quantidade em estoque: {material[3]} - Fabricante: {material[4]}")
+
+    listbox.bind("<Double-Button-1>", lambda event: mostrar_material_selecionado(material[0]))
+
+    voltar_button = ttk.Button(self.window, text="Voltar", command=self.options_seller)
+    voltar_button.place(x=500, y=400)
+    
   # Fim do loop do cliente
 
   #---------------------------------------------------------------#
@@ -396,23 +453,13 @@ class Application():
       self.create_widgtes()
       self.create_logo_adm()     
       tipo = Usuarios.pesquisar_usuario(usuario_logado)
-      if(tipo[1]=="Vendedor"):
-        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
-        ContinueLabel.place(x=120, y=100)
-        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=lambda: self.options_seller(usuario_logado,senha_logada))
-        ContinueButton.place(x=165, y=170)
-      elif(tipo[1]=="Gerente"):
-        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
-        ContinueLabel.place(x=120, y=100)
-        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_manager)
-        ContinueButton.place(x=165, y=170)
-      elif(tipo[1]=="Administrador"):
+      if(tipo[1]=="Administrador"):
         ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
         ContinueLabel.place(x=120, y=100)
         ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_adm)
         ContinueButton.place(x=165, y=170)
       else:
-        ContinueLabel = tk.Label(self.RightFrame, text="Area restrita, somente funcionarios", bg="#F5F5F5")
+        ContinueLabel = tk.Label(self.RightFrame, text="Area restrita, somente Administradores", bg="#F5F5F5")
         ContinueLabel.place(x=120, y=100)
         ContinueButton = ttk.Button(self.RightFrame, text="Voltar para o menu principal", width=30, command=self.options_adm)
         ContinueButton.place(x=165, y=170)
@@ -467,9 +514,13 @@ class Application():
 
     # Crie um StringVar para armazenar o estoque selecionado
     estoque_selecionado = tk.StringVar()
+    lista_de_estoques =[]
+    for k in range(len(stock_list)):
+      print(stock_list[k])
+      lista_de_estoques.append(f"{stock_list[k][0]} {stock_list[k][1]} {stock_list[k][2]}")
 
     # Crie um widget Combobox e preencha-o com a stock_list
-    SaveStockCombobox = ttk.Combobox(self.RightFrame, textvariable=estoque_selecionado, values=stock_list, width=17)
+    SaveStockCombobox = ttk.Combobox(self.RightFrame, textvariable=estoque_selecionado, values=lista_de_estoques, width=25)
     SaveStockCombobox.place(x=180, y=130)
     SaveStockCombobox.current(0)  # Defina o estoque selecionado padrão
 
@@ -707,25 +758,15 @@ class Application():
       self.create_widgtes()
       self.create_logo_manager()     
       tipo = Usuarios.pesquisar_usuario(usuario_logado)
-      if(tipo[1]=="Vendedor"):
-        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
-        ContinueLabel.place(x=120, y=100)
-        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=lambda: self.options_seller(usuario_logado,senha_logada))
-        ContinueButton.place(x=165, y=170)
-      elif(tipo[1]=="Gerente"):
+      if(tipo[1]=="Gerente"):
         ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
         ContinueLabel.place(x=120, y=100)
         ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_manager)
         ContinueButton.place(x=165, y=170)
-      elif(tipo[1]=="Administrador"):
-        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
-        ContinueLabel.place(x=120, y=100)
-        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_adm)
-        ContinueButton.place(x=165, y=170)
       else:
-        ContinueLabel = tk.Label(self.RightFrame, text="Area restrita, somente funcionarios", bg="#F5F5F5")
+        ContinueLabel = tk.Label(self.RightFrame, text="Area restrita, somente Gerentes", bg="#F5F5F5")
         ContinueLabel.place(x=120, y=100)
-        ContinueButton = ttk.Button(self.RightFrame, text="Voltar para o menu principal", width=30, command=self.options_adm)
+        ContinueButton = ttk.Button(self.RightFrame, text="Tente novamente", width=30, command=self.manager)
         ContinueButton.place(x=165, y=170)
     else:
       Application.limpar(self)
@@ -788,12 +829,16 @@ class Application():
     
     # Supondo que você tenha uma lista de estoques chamada 'stock_list'
     stock_list = Estoques.listar_todos_estoques()
+    lista_de_estoques =[]
+    for k in range(len(stock_list)):
+      print(stock_list[k])
+      lista_de_estoques.append(f"{stock_list[k][0]} {stock_list[k][1]} {stock_list[k][2]}")
 
     # Crie um StringVar para armazenar o estoque selecionado
     estoque_selecionado = tk.StringVar()
 
     # Crie um widget Combobox e preencha-o com a stock_list
-    SaveStockCombobox = ttk.Combobox(self.RightFrame, textvariable=estoque_selecionado, values=stock_list, width=17)
+    SaveStockCombobox = ttk.Combobox(self.RightFrame, textvariable=estoque_selecionado, values=lista_de_estoques, width=25)
     SaveStockCombobox.place(x=180, y=130)
     SaveStockCombobox.current(0)  # Defina o estoque selecionado padrão
 
@@ -1471,20 +1516,10 @@ class Application():
         ContinueLabel.place(x=120, y=100)
         ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=lambda: self.options_seller(usuario_logado,senha_logada))
         ContinueButton.place(x=165, y=170)
-      elif(tipo[1]=="Gerente"):
-        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
-        ContinueLabel.place(x=120, y=100)
-        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_manager)
-        ContinueButton.place(x=165, y=170)
-      elif(tipo[1]=="Administrador"):
-        ContinueLabel = tk.Label(self.RightFrame, text="Login realizado com sucesso!\nClique para continuar", bg="#F5F5F5")
-        ContinueLabel.place(x=120, y=100)
-        ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_adm)
-        ContinueButton.place(x=165, y=170)
       else:
-        ContinueLabel = tk.Label(self.RightFrame, text="Area restrita, somente funcionarios", bg="#F5F5F5")
+        ContinueLabel = tk.Label(self.RightFrame, text="Erro ao fazer login, tente novamente!", bg="#F5F5F5")
         ContinueLabel.place(x=120, y=100)
-        ContinueButton = ttk.Button(self.RightFrame, text="Voltar para o menu principal", width=30, command=self.options_adm)
+        ContinueButton = ttk.Button(self.RightFrame, text="Voltar para o menu principal", width=30, command=self.seller)
         ContinueButton.place(x=165, y=170)
     else:
       Application.limpar(self)
@@ -1498,8 +1533,8 @@ class Application():
 
   # Exibição das opções do vendedor
   def options_seller(self,usuario,senha):
-    self.User_Seller = usuario
-    self.Pass_seller = senha
+    self.User_Seller=usuario
+    self.Pass_seller=senha
     Application.limpar(self)
     self.create_widgtes()
     self.create_logo_seller()
@@ -1513,7 +1548,7 @@ class Application():
     UpdateButton = ttk.Button(self.RightFrame, text="Gerenciar materiais", command=lambda:self.list_material(self.User_Seller,self.Pass_seller))
     UpdateButton.place(x=120, y=200)
 
-    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.admin)
+    VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.seller)
     VoltarButton.place(x=120, y=400)
 
   # Exibição das opções para registro de material
@@ -1546,12 +1581,15 @@ class Application():
     SavePassLabel.place(x=70, y=210)
     # Supondo que você tenha uma lista de estoques chamada 'stock_list'
     stock_list = Fabricantes.listar_todos()
-
+    lista_de_fabricantes=[]
     # Crie um StringVar para armazenar o estoque selecionado
     estoque_selecionado = tk.StringVar()
+    for k in range(len(stock_list)):
+      print(stock_list[k])
+      lista_de_fabricantes.append(f"{stock_list[k][0]} {stock_list[k][1]} {stock_list[k][2]}")
 
     # Crie um widget Combobox e preencha-o com a stock_list
-    SaveStockCombobox = ttk.Combobox(self.RightFrame, textvariable=estoque_selecionado, values=stock_list, width=17)
+    SaveStockCombobox = ttk.Combobox(self.RightFrame, textvariable=estoque_selecionado, values=lista_de_fabricantes, width=25)
     SaveStockCombobox.place(x=180, y= 210) 
     SaveStockCombobox.current(0)  # Defina o estoque selecionado padrão
 
@@ -1589,51 +1627,68 @@ class Application():
       AgainButton.place(x=120, y=150)
 
   # Exibição das opções para atualização de material
-  def update_material(self):
+  def update_material(self,id,usuario,senha):
     Application.limpar(self)
     self.create_widgtes()
     self.create_logo_seller()
+    info_material=Material.pesquisar_por_id(id)
+    id_material = info_material[0]
 
     SaveAdmLabel = tk.Label(self.RightFrame, text="Nome:", bg="#f5f5f5")
     SaveAdmLabel.place(x=70, y=50)
     SaveAdmEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveAdmEntry.insert(tk.END, info_material[1])
     SaveAdmEntry.place(x=180, y=50)
 
     SaveContactLabel = tk.Label(self.RightFrame, text="Descrição:", bg="#f5f5f5")
     SaveContactLabel.place(x=70, y=90)
     SaveContactEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveContactEntry.insert(tk.END, info_material[2])
     SaveContactEntry.place(x=180, y=90)
 
     SaveUserIdLabel = tk.Label(self.RightFrame, text="Preço:", bg="#f5f5f5")
     SaveUserIdLabel.place(x=70, y = 130)
     SaveUserIdEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveUserIdEntry.insert(tk.END, info_material[3])
     SaveUserIdEntry.place(x=180, y=130)
 
     SaveStockQtdLabel = tk.Label(self.RightFrame, text="Quantidade em estoque:", bg="#f5f5f5")
     SaveStockQtdLabel.place(x=70, y=170)
     SaveStockQtdEntry = ttk.Entry(self.RightFrame, width=20)
+    SaveStockQtdEntry.insert(tk.END, info_material[4])
     SaveStockQtdEntry.place(x=180, y= 170)
 
     SavePassLabel = tk.Label(self.RightFrame, text="Fabricante:", bg="#f5f5f5")
     SavePassLabel.place(x=70, y=210)
-    SavePassEntry = ttk.Entry(self.RightFrame, width=20)
-    SavePassEntry.place(x=180, y= 210) 
+    
+    # Supondo que você tenha uma lista de estoques chamada 'stock_list'
+    stock_list = Fabricantes.listar_todos()
+    lista_de_estoques =[]
+    for k in range(len(stock_list)):
+      print(stock_list[k])
+      lista_de_estoques.append(f"{stock_list[k][0]} {stock_list[k][1]} {stock_list[k][2]}")
 
-    SaveStockLabel = tk.Label(self.RightFrame, text="Estoque armazenado:", bg="#f5f5f5")
-    SaveStockLabel.place(x=70, y=170)
-    SaveStockEntry = ttk.Entry(self.RightFrame, width=20)
-    SaveStockEntry.place(x=180, y= 170)  
+    # Crie um StringVar para armazenar o estoque selecionado
+    estoque_selecionado = tk.StringVar()
 
-    SavetButton = ttk.Button(self.RightFrame, text="Salvar dados", command=self.action_update_material)
+    # Crie um widget Combobox e preencha-o com a stock_list
+    SaveStockCombobox = ttk.Combobox(self.RightFrame, textvariable=estoque_selecionado, values=lista_de_estoques, width=25)
+    SaveStockCombobox.place(x=180, y= 210)
+    SaveStockCombobox.current(0)  # Defina o estoque selecionado padrão
+
+    # Use estoque_selecionado.get() para obter o valor do estoque selecionado 
+
+    SavetButton = ttk.Button(self.RightFrame, text="Salvar dados", command= lambda: self.action_update_material(usuario,senha,id_material,SaveAdmEntry.get(),SaveContactEntry.get(),SaveUserIdEntry.get(), SaveStockQtdEntry.get(),estoque_selecionado.get()))
     SavetButton.place(x=220, y=350)
 
     VoltarButton = ttk.Button(self.RightFrame, text="Voltar", command=self.seller)
     VoltarButton.place(x=220, y=400)
     
   # Tentativa de atualização de material
-  def action_update_material(self):
+  def action_update_material(self,usuario,senha,id,Nome, Descrição, Preço, Quantidade_estoque, Fabricante_id):
     try:
-      # Código de validação de login no BD
+      seller = Vendedores(usuario,senha)
+      seller.alterar_material(id,Nome, Descrição, float(Preço), int(Quantidade_estoque), int(Fabricante_id[0]))
       Application.limpar(self)
       self.create_widgtes()
       self.create_logo_seller()     
@@ -1641,9 +1696,9 @@ class Application():
       ContinueLabel = tk.Label(self.RightFrame, text="Produto atualizado com sucesso!\nClique para continuar", bg="#F5F5F5")
       ContinueLabel.place(x=120, y=100)
 
-      ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_seller)
+      ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=lambda: self.options_seller(usuario,senha))
       ContinueButton.place(x=165, y=170)
-    
+
     except:
       Application.limpar(self)
       self.create_widgtes()
@@ -1651,13 +1706,13 @@ class Application():
 
       ErrorLabel = tk.Label(self.RightFrame, text="Erro ao atualizar dados, tente novamente!", bg="#F5F5F5")
       ErrorLabel.place(x=120, y=100)
-      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.update_material)
+      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=lambda: self.update_material(usuario,senha))
       AgainButton.place(x=120, y=150)
 
   # Tentativa de remoção de material
-  def action_remove_material(self):
+  def action_remove_material(self,id,usuario,senha):
     try:
-      # Código de validação de login no BD
+      Material.remover(id)
       Application.limpar(self)
       self.create_widgtes()
       self.create_logo_seller()     
@@ -1665,7 +1720,7 @@ class Application():
       ContinueLabel = tk.Label(self.RightFrame, text="Produto removido com sucesso!\nClique para continuar", bg="#F5F5F5")
       ContinueLabel.place(x=120, y=100)
 
-      ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=self.options_seller)
+      ContinueButton = ttk.Button(self.RightFrame, text="Continuar", width=30, command=lambda: self.options_seller(usuario,senha))
       ContinueButton.place(x=165, y=170)
     
     except:
@@ -1675,65 +1730,162 @@ class Application():
 
       ErrorLabel = tk.Label(self.RightFrame, text="Erro ao remover dados, tente novamente!", bg="#F5F5F5")
       ErrorLabel.place(x=120, y=100)
-      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=self.update_seller)
+      AgainButton = ttk.Button(self.RightFrame, text="Tente novamente", command=lambda: self.list_material(usuario,senha))
       AgainButton.place(x=120, y=150)
-
+      
   # Listagem de materiais
-  def list_material(self,usuario,senha):
-    # gerenciador = Gerenciador()
-    # materiais = gerenciador.listar_materiais()
-    
+  def list_material(self, usuario, senha):
     Application.limpar(self)
     self.create_widgtes()
     self.create_logo_seller()
-    seller = Vendedores(usuario,senha)
+    seller = Vendedores(usuario, senha)
     materiais = seller.listar_materiais()
-    text_label = tk.Label(self.window, text="Materiais cadastrados:",bg= "#FFFFFF",  padx=10, pady=10)
-    text_label.pack()
+    
+    user_entry_label = tk.Label(self.window, text="Pesquisar:",  padx=10, pady=5)
+    user_entry_label.place(x=260, y=22)
+    user_entry = tk.Entry(self.window)
+    user_entry.place(x=374, y=28)
 
-    # Criação da barra de rolagem
-    scrollbar = ttk.Scrollbar(self.RightFrame)
-    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    filter_label = tk.Label(self.window, text="Filtrar por:", padx=10, pady=5)
+    filter_label.place(x=260, y=60)
+
+    filter_options = ["> 5",""]
+    selected_filter = tk.StringVar(self.window)
     
-    # Criação da lista de resultados
-    lista_materiais = tk.Listbox(self.window, yscrollcommand=scrollbar.set, justify='center')
-    lista_materiais.pack(fill="x", expand=1)
+    filter_dropdown = tk.OptionMenu(self.window, selected_filter, *filter_options)
+    filter_dropdown.place(x=374, y=64)
     
+    price_label = tk.Label(self.window, text="faixa-preço:", padx=10, pady=5)
+    price_label.place(x=440, y=60)
+    price_entry = tk.Entry(self.window,width=5)
+    price_entry.place(x=574, y=64)
+    espace = tk.Label(self.window, text="-", padx=10, pady=5)
+    espace.place(x=644, y=60)
+    price_hight_entry = tk.Entry(self.window,width=5)
+    price_hight_entry.place(x=684, y=64)
+    
+    voltar_Pesquisar = ttk.Button(self.window, text="Pesquisar", command=lambda: self.list_material_com_pesquisa(usuario, senha,user_entry.get(),selected_filter.get(),price_entry.get(),price_hight_entry.get()))
+    voltar_Pesquisar.place(x=650, y=30)
+    
+    def mostrar_material_selecionado(id):
+        selected_item = listbox.get(tk.ACTIVE)
+        selected_item= selected_item.split("-")
+        Application.limpar(self)
+        self.create_widgtes()
+        self.create_logo_seller()
+        text_font = font.Font(family="Helvetica", size=self.default_font.cget("size") + 4,weight="bold")
+
+        text_label = tk.Label(self.RightFrame, text="Material cadastrado:",font=text_font,bg="#F5F5F5")
+        text_label.place(x=140, y=30)
+        
+        item_text = tk.Label(self.RightFrame, text=f"Id: {selected_item[0]} \n {selected_item[1]} \n {selected_item[2]} \n {selected_item[3]} \n {selected_item[4]}", font=("Helvetica", 16),bg="#F5F5F5")
+        item_text.place(x=60, y=90)
+        
+        alterar_button = tk.Button(self.RightFrame, text="Alterar",width=35,command=lambda: self.update_material(id,usuario, senha))
+        alterar_button.place(x=50, y=260)
+
+        remover_button = tk.Button(self.RightFrame, text="Remover",width=35, command=lambda: self.action_remove_material(id,usuario, senha))
+        remover_button.place(x=50, y=320)
+
+        voltar_button = tk.Button(self.RightFrame, text="Voltar",width=35, command=lambda:self.list_material(id,usuario, senha))
+        voltar_button.place(x=50, y=380)
+        
+    # Criar as barras de rolagem
+    scrollbar_y = tk.Scrollbar(self.window)
+    scrollbar_y.place(x=600, y=100, height=200)
+
+    scrollbar_x = tk.Scrollbar(self.window, orient=tk.HORIZONTAL)
+    scrollbar_x.place(x=260, y=320, width=344)
+
+    # Criar a Listbox com largura aumentada e associar as barras de rolagem
+    listbox = tk.Listbox(
+        self.window,
+        width=44,
+        yscrollcommand=scrollbar_y.set,
+        xscrollcommand=scrollbar_x.set
+    )
+    listbox.place(x=260, y=100)
+
+    # Associar as barras de rolagem à Listbox
+    scrollbar_y.config(command=listbox.yview)
+    scrollbar_x.config(command=listbox.xview)
+
+    # Adicionar IDs e nomes dos materiais à Listbox
     for material in materiais:
-      lista_materiais.insert(tk.END, f"Id: {material[0]} Nome: {material[1]} Preço: {material[3]} Quantidade_estoque: {material[4]} ")
+        listbox.insert(tk.END, f"{material[0]} - Nome: {material[1]} - Preço: {material[2]} - Quantidade em estoque: {material[3]} - Fabricante: {material[4]}")
 
-    def mostrar_material_selecionado():
-      selected_item = lista_materiais.get(tk.ACTIVE)
-      
-      Application.limpar(self)
-      self.create_widgtes()
-      self.create_logo_seller()
-      
-      item_label = tk.Label(self.RightFrame, text="Material selecionado:", font="Helvetica", padx=10, pady=10)
-      item_label.pack()
-          
-      item_text = tk.Label(self.RightFrame, text=f"Id: {selected_item[0]}\nNome: {selected_item[1]}\nDescrição: {selected_item[2]}:\nPreço: {selected_item[3]}\Quantidade em estoque: {selected_item[4]}\Fabricante: {selected_item[5]}\nEstoque: {selected_item[6]}", font="Helvetica", padx=10, pady=10)
-      item_text.pack()
-
-      alterar_button = tk.Button(self.RightFrame, text="Alterar", command=lambda: self.update_material(selected_item))
-      alterar_button.pack(pady=10)
-
-      Remover_button = tk.Button(self.RightFrame, text="Remover", command=lambda: self.action_remove_material(selected_item))
-      Remover_button.pack(pady=10)
-      
-      voltar_button = tk.Button(self.RightFrame, text="Voltar", command=self.list_material)
-      voltar_button.pack(pady=10)
-    
-    lista_materiais.bind("<Double-Button-1>", lambda event: mostrar_material_selecionado())
-
-    scrollbar.config(command=lista_materiais.yview)
+    listbox.bind("<Double-Button-1>", lambda event: mostrar_material_selecionado(material[0]))
 
     voltar_button = ttk.Button(self.window, text="Voltar", command=self.options_seller)
-    voltar_button.place(x=500,y=400)
+    voltar_button.place(x=500, y=400)
+  
+  def list_material_com_pesquisa(self, usuario, senha, pesq, filtro, pre_min, pre_max):
+    try:
+        preco_min = min(int(pre_min), int(pre_max))
+        preco_max = max(int(pre_min), int(pre_max))
+    except ValueError:
+        preco_min = int(pre_min) if pre_min else None
+        preco_max = int(pre_max) if pre_max else None
+
+    filtro = int(filtro) if filtro else None
+    pesq = pesq if pesq else None
+
+    Application.limpar(self)
+    self.create_widgtes()
+    self.create_logo_seller()
+    seller = Vendedores(usuario, senha)
+    print(pesq)
+    print(filtro)
+    print(preco_min)
+    print(preco_max)
+    if not any([pesq, filtro, preco_min, preco_max]):
+        materiais = []
+    else:
+        materiais = seller.pesquisa_material_especifico(pesq, preco_min, preco_max, filtro)
+    print(materiais)
+
+    user_entry_label = tk.Label(self.window, text="Pesquisar:", padx=10, pady=5)
+    user_entry_label.place(x=260, y=22)
+    user_entry = tk.Entry(self.window)
+    user_entry.place(x=374, y=28)
+
+    filter_label = tk.Label(self.window, text="Filtrar por:", padx=10, pady=5)
+    filter_label.place(x=260, y=60)
+
+    filter_options = ["> 5 unidades disponíveis"]
+    selected_filter = tk.StringVar(self.window)
+
+    filter_dropdown = tk.OptionMenu(self.window, selected_filter, *filter_options)
+    filter_dropdown.place(x=374, y=64)
+
+    price_label = tk.Label(self.window, text="faixa-preço:", padx=10, pady=5)
+    price_label.place(x=440, y=60)
+    price_entry = tk.Entry(self.window, width=5)
+    price_entry.place(x=574, y=64)
+    espace = tk.Label(self.window, text="-", padx=10, pady=5)
+    espace.place(x=644, y=60)
+    price_hight_entry = tk.Entry(self.window, width=5)
+    price_hight_entry.place(x=684, y=64)
+
+    voltar_Pesquisar = ttk.Button(
+        self.window,
+        text="Pesquisar",
+        command=lambda: self.list_material_com_pesquisa(
+            usuario,
+            senha,
+            user_entry.get(),
+            selected_filter.get(),
+            price_entry.get(),
+            price_hight_entry.get(),
+        ),
+    )
+    voltar_Pesquisar.place(x=650, y=30)
+
+
+
+
   # Fim do loop do vendedor
     
-
-
 
 # Iniciar aplicação
 if __name__ == "__main__":
